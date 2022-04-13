@@ -186,3 +186,14 @@ output "public_ip" {
 output "alb_dns_name" {
   value = aws_lb.example.dns_name
 }
+
+data "terraform_remote_state" "db" {
+  backend = "s3"
+
+  config = {
+    bucket = var.db_remote_state_bucket
+    key = var.db_remote_state_key
+    region = "ap-northeast-2"
+  }
+  
+}
