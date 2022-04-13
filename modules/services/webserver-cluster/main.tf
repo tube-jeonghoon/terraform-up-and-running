@@ -32,12 +32,12 @@ resource "aws_instance" "example" {
               EOF
 
   tags = {
-    Name = "terraform-example"
+    Name = "${var.cluster_name}"
   }
 }
 
 resource "aws_security_group" "instance" {
-  name = "terraform-example-instance"
+  name = "${var.cluster_name}-SG"
 
   ingress {
     from_port   = var.server_port
@@ -45,12 +45,6 @@ resource "aws_security_group" "instance" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
-}
-
-variable "server_port" {
-  description = "The port the server will use for HTTP requests"
-  type        = number
-  default     = 80
 }
 
 resource "aws_launch_configuration" "example" {
@@ -91,14 +85,14 @@ resource "aws_autoscaling_group" "example" {
 
   tag {
     key                 = "Name"
-    value               = "terraform-asg-example"
+    value               = "${var.cluster_name}-ASG"
     propagate_at_launch = true
   }
 }
 
 # LoadBlancer 설정
 resource "aws_lb" "example" {
-  name               = "terraform-asg-example"
+  name               = "${var.cluster.name}"
   load_balancer_type = "application"
   subnets            = data.aws_subnets.default.ids
   security_groups    = [aws_security_group.alb.id]
@@ -122,7 +116,7 @@ resource "aws_lb_listener" "http" {
 }
 
 resource "aws_security_group" "alb" {
-  name = "terraform-example-alb"
+  name = "${var.cluster_name}-alb"
 
   # 인바운드 HTTP 트래픽 허용
   ingress {
@@ -141,7 +135,7 @@ resource "aws_security_group" "alb" {
 }
 
 resource "aws_lb_target_group" "asg" {
-  name     = "terraform-asg-example"
+  name     = "${var.cluster_name}-TG"
   port     = var.server_port
   protocol = "HTTP"
   vpc_id   = data.aws_vpc.default.id
